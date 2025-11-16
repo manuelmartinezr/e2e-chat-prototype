@@ -36,13 +36,15 @@ class DoubleRatchet:
         dh2 = CryptoUtils.dh_exchange(self.my_priv, self.remote_dh)
         self.root_key, self.CKs, _ = self._kdf_root(self.root_key, dh2)
 
-    def encrypt(self, plaintext):
+    def encrypt(self, plaintext, sender_id, receiver_id):
         self.CKs, mk = self._kdf_chain(self.CKs)
         nonce = CryptoUtils.random_bytes(12)
         aesgcm = AESGCM(mk)
         ciphertext = aesgcm.encrypt(nonce, plaintext.encode(), None)
 
         return {
+            "sender_id": sender_id,
+            "receiver_id": receiver_id,
             "ciphertext": base64.b64encode(ciphertext).decode(),
             "nonce": base64.b64encode(nonce).decode(),
             "dh_pub": base64.b64encode(
